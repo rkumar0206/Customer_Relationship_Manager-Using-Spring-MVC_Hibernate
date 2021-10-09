@@ -107,7 +107,207 @@ A project using spring MVC and hibernate to make a simple web app for showing cu
         </web-app>
         
  ### STEP 5 :  Create DAO 
- * DAO (Data access object) : This 
+ * DAO (Data access object) : This is a simple interface used for declaring all the database functions.
+        
+ ##### CustomerDAO.java
+        package com.rohitThebest.springdemo.dao;
+        
+        import java.util.List;
+        
+        import com.rohitThebest.springdemo.entity.Customer;
+        
+        public interface CustomerDAO {
+        
+        	public List<Customer> getCustomers();
+        }
+
+ ### STEP 6 : Create the implmentation class for the dao created above.
+ * This implementation class will be used for defining all the functions declared in the __CustomerDAO__ class.
+
+##### CustomerDAOImpl.java
+
+      package com.rohitThebest.springdemo.dao;
+      
+      import java.util.List;
+      
+      import org.hibernate.Session;
+      import org.hibernate.SessionFactory;
+      import org.hibernate.query.Query;
+      import org.springframework.beans.factory.annotation.Autowired;
+      import org.springframework.stereotype.Repository;
+      import org.springframework.transaction.annotation.Transactional;
+      
+      import com.rohitThebest.springdemo.entity.Customer;
+      
+      /**
+       * @Repository :  this will help spring to scan for the implementation of the DAO.
+       * This annotation is only used on the DAO implementation classes
+       */
+      @Repository
+      public class CustomerDAOImpl implements CustomerDAO {
+      
+      	// need to inject the session factory
+      	@Autowired
+      	private SessionFactory sessionFactory;
+      	
+      	
+      	@Override
+      	/**
+      	 * @Transactional : Using this annotation we don't need to explicitly 
+      	 * get the transaction object and also we don't need to call transaction.commit()
+      	 * Spring framework will do this stuff for us.
+      	 */
+      	@Transactional  
+      	public List<Customer> getCustomers() {
+      		
+      		// get the current hibernate session
+      		Session currentSession = sessionFactory.getCurrentSession();
+      		
+      		// create a query
+      		Query<Customer> query = 
+      				currentSession.createQuery("from Customer", Customer.class);
+      
+      		
+      		// execute query and the result list
+      		List<Customer> customers = query.getResultList();
+      		
+      		// return the results
+      		return customers;
+      	}
+      
+      }
+
+ * Observe the annotations used above :
+ * __@Repository__ : This annotation makes the spring know that this class is the implemtation class for the dao and it is always declared on the implemtation class.
+ * __@Autowired__ : This annotation inject the SessionFactory from which is defined in the xml file. Here we have used the field injection and spring will inject the session factory.
+ * __@Transactional__ : Using this annotation we don't need to explicitly get the transaction object and also we don't need to call transaction.commit(). Spring framework will do this stuff for us automatically.
  
- 
- 
+### STEP 7 : Create Customer controller class
+* Now let's create a controller class for the customer.
+* This class will help us do mapping and send the data to the jsp page so that the data can be displayed to the user.
+
+##### CustomerController.java
+
+      package com.rohitThebest.springdemo.controller;
+      
+      import java.util.List;
+      
+      import org.springframework.beans.factory.annotation.Autowired;
+      import org.springframework.stereotype.Controller;
+      import org.springframework.ui.Model;
+      import org.springframework.web.bind.annotation.RequestMapping;
+      
+      import com.rohitThebest.springdemo.dao.CustomerDAO;
+      import com.rohitThebest.springdemo.entity.Customer;
+      
+      @Controller
+      @RequestMapping("/customer")
+      public class CustomerController {
+      
+      	//need to inject the dao into the controller
+      	@Autowired
+      	private CustomerDAO customerDAO;
+      
+      	@RequestMapping("/list")
+      	public String listCustomers(Model theModel) {
+      		
+      		// get customers from the dao
+      		List<Customer> customers = customerDAO.getCustomers();
+      		
+      		// add the customers to the model
+      		theModel.addAttribute("customers", customers);
+      		
+      		return "list-customers";
+      	}
+      }
+
+* __@Controller__ : This class helps Spring to identify it as the controller class.
+* __@RequestMapping()__ : Used for mapping the web pages and render it on the browser.
+* __@AutoWired__ : Used for injecting the _CustomerDao_ object and it's implementation.
+* __return "list-customers"__ : the return String here is actually the jsp file name. We load the data in the model and pass it to the jsp page.
+
+### STEP 8 : Create the jsp file for showing the data on the web-page
+* Creating the _list-customers.jsp_ file which will take the data passed by the controller and will diaplay it on the web-page.
+
+##### list-customers.jsp
+
+    <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+    <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+        pageEncoding="ISO-8859-1"%>
+    <!DOCTYPE html>
+    <html>
+    <head>
+    	<meta charset="ISO-8859-1">
+    	
+    	<title>List Customers</title>
+    	
+    	<link 
+    		type="text/css" 
+    		rel="stylesheet" 
+    		href="${pageContext.request.contextPath}/resources/css/style.css"/>
+    	
+    	
+    </head>
+    
+    <body>
+    
+    	<div id="wrapper">
+    		
+    		<div id="header">
+    			<h2>CRM - Customer Relationship Manager</h2>
+    		</div>
+    	</div>
+    	
+    	<div id="container">
+    		
+    		<div id="content">
+    			
+    			<!-- add out html table here -->
+    			
+    			<table>
+    				
+    				<tr>
+    					<th>First Name </th>
+    					<th>Last Name </th>
+    					<th>Email</th>
+    				</tr>
+    				
+    				<!-- loop over and print our customers -->
+    				
+    				<c:forEach var="tempCustomer" items="${customers}">
+    					
+    					<tr>
+    						
+    						<td>${tempCustomer.firstName}</td>
+    						<td>${tempCustomer.lastName}</td>
+    						<td>${tempCustomer.email}</td>
+    						
+    					</tr>
+    					
+    				</c:forEach>
+    				
+    			</table>
+    			
+    		</div>
+    		
+    	</div>
+    
+    </body>
+    </html>
+
+### STEP 9 : Create the welcome page
+* In _web.xml_ file we have declared the welcome page index.jsp which we have not created yet. Let's create it!!
+
+##### web.xml
+     ...
+     ...
+     <welcome-file-list>
+       <welcome-file>index.jsp</welcome-file>
+       <welcome-file>index.html</welcome-file>
+     </welcome-file-list>
+     ...
+     ...
+     
+##### index.jsp (in WEB-INF folder)
+    <% response.sendRedirect("customer/list"); %>
+ * this code will just redirect us to the page _customer/list/_. 
