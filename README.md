@@ -310,4 +310,32 @@ A project using spring MVC and hibernate to make a simple web app for showing cu
      
 ##### index.jsp (in WEB-INF folder)
     <% response.sendRedirect("customer/list"); %>
- * this code will just redirect us to the page _customer/list/_. 
+ * this code will just redirect us to the paggine _customer/list/_. 
+
+---
+
+### Now let's refactor our code a bit
+
+#### 1. Replacing RequestMapping("/list") to GetMapping("/list")
+* First of all let's replace the __@RequestMapping("/list")__ on _listCustomers(Model theModel)_ in __CustomerController__ to __@GetMapping("/list")__.
+* __@GetMapping()__ : This annotation is used on the methods which handle only the _GET_ request. This annotation will restrict any other request methods like POST, etc.
+
+* After replacing our code will be like this - 
+
+      /**
+	    * @GetMapping : It is just used for handling the GET methods, any 
+      * other methods would be rejected by this method
+      */
+      @GetMapping("/list")
+      //@RequestMapping("/list")
+      public String listCustomers(Model theModel) {
+        
+        // get customers from the dao
+        List<Customer> customers = customerDAO.getCustomers();
+        
+        // add the customers to the model
+        theModel.addAttribute("customers", customers);
+        
+        return "list-customers";
+      }
+	
