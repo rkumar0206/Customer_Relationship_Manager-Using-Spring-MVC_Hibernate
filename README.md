@@ -322,6 +322,8 @@ A project using spring MVC and hibernate to make a simple web app for showing cu
 
 * After replacing our code will be like this - 
 
+##### CustomerController.java
+
       /**
 	    * @GetMapping : It is just used for handling the GET methods, any 
       * other methods would be rejected by this method
@@ -339,3 +341,164 @@ A project using spring MVC and hibernate to make a simple web app for showing cu
         return "list-customers";
       }
 	
+#### 2. Adding a service layer 
+
+* Here we add a service layer which will be between the CustomerController and CustomerDao.
+* We add this layer so that we can integrate data from multiple sources (DAOs and repositories). 
+* Let's say there are three __DAOs__; _CustomerDao_, _SalesDao_ and _LicenceDao_. No all this dao functions can be integrated into the single service and our controller will use them using the Service Implemetation class.
+	* __STEP 1 :__ Make a package called _com.rohitThebest.springdemo.service_
+	* __STEP 2 :__ Make a _CustomerService.java_ interface and add the method public List<Customer> getCustomers();
+		
+	##### CustomerService.java
+			package com.rohitThebest.springdemo.service;
+			
+			import java.util.List;
+			
+			import com.rohitThebest.springdemo.entity.Customer;
+			
+			public interface CustomerService {
+			
+				public List<Customer> getCustomers();
+			
+			}
+	* __STEP 3 : Make a service implmentation class called _CustomerServiceImpl.java_
+	
+	##### CustomerServiceImpl.java
+	
+			package com.rohitThebest.springdemo.service;
+			
+			import java.util.List;
+			
+			import javax.transaction.Transactional;
+			
+			import org.springframework.beans.factory.annotation.Autowired;
+			import org.springframework.stereotype.Service;
+			
+			import com.rohitThebest.springdemo.dao.CustomerDAO;
+			import com.rohitThebest.springdemo.entity.Customer;
+			
+			/**
+			 * @Service : This is added to the service implementation class and 
+			 * is scanned by Spring for declaring it as the service class
+			 */
+			@Service
+			public class CustomerServiceImpl implements CustomerService {
+			
+				// need to inject CustomerDAO
+				@Autowired
+				private CustomerDAO customerDAO;
+				
+				/**
+				 * @Transactional : Our service layer will handle the opening and closing
+				 * of the transaction
+				 */
+				@Override
+				@Transactional
+				public List<Customer> getCustomers() {
+					
+					return customerDAO.getCustomers();
+				}
+			
+			}
+	
+	* __STEP 4 :__ Remove the _@Transactional_ annotation from the __CustomerDaoImpl.java__
+	
+	##### CustomerDAOImpl.java
+	
+			package com.rohitThebest.springdemo.dao;
+			
+			import java.util.List;
+			
+			import org.hibernate.Session;
+			import org.hibernate.SessionFactory;
+			import org.hibernate.query.Query;
+			import org.springframework.beans.factory.annotation.Autowired;
+			import org.springframework.stereotype.Repository;
+			import org.springframework.transaction.annotation.Transactional;
+			
+			import com.rohitThebest.springdemo.entity.Customer;
+			
+			/**
+			 * @Repository :  this will help spring to scan for the implementation of the DAO.
+			 * This annotation is only used on the DAO implementation classes
+			 */
+			@Repository
+			public class CustomerDAOImpl implements CustomerDAO {
+			
+				// need to inject the session factory
+				@Autowired
+				private SessionFactory sessionFactory;
+				
+				
+				@Override 
+				public List<Customer> getCustomers() {
+					
+					// get the current hibernate session
+					Session currentSession = sessionFactory.getCurrentSession();
+					
+					// create a query
+					Query<Customer> query = 
+							currentSession.createQuery("from Customer", Customer.class);
+			
+					
+					// execute query and the result list
+					List<Customer> customers = query.getResultList();
+					
+					// return the results
+					return customers;
+				}
+			
+			}
+	
+	* __STEP 5 :__ Update the __CustomerController.java__ class by replacing the CustomerDAO object with CustomerService object
+	
+	##### CustomerController.java
+
+			package com.rohitThebest.springdemo.controller;
+			
+			import java.util.List;
+			
+			import org.springframework.beans.factory.annotation.Autowired;
+			import org.springframework.stereotype.Controller;
+			import org.springframework.ui.Model;
+			import org.springframework.web.bind.annotation.GetMapping;
+			import org.springframework.web.bind.annotation.PostMapping;
+			import org.springframework.web.bind.annotation.RequestMapping;
+			
+			import com.rohitThebest.springdemo.dao.CustomerDAO;
+			import com.rohitThebest.springdemo.entity.Customer;
+			import com.rohitThebest.springdemo.service.CustomerService;
+			
+			@Controller
+			@RequestMapping("/customer")
+			public class CustomerController {
+			
+				// need to inject the customer service
+				@Autowired
+				private CustomerService customerService;
+				
+				/**
+				 * @GetMapping : It is just used for handling the GET methods, any 
+				 * other methods would be rejected by this method
+				 */
+				@GetMapping("/list")
+				//@RequestMapping("/list")
+				public String listCustomers(Model theModel) {
+					
+					// get customers from the service
+					List<Customer> customers = customerService.getCustomers();
+					
+					// add the customers to the model
+					theModel.addAttribute("customers", customers);
+					
+					return "list-customers";
+				}
+			}
+
+
+
+
+
+
+
+
