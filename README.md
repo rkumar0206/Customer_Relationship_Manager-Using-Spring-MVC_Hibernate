@@ -350,155 +350,378 @@ A project using spring MVC and hibernate to make a simple web app for showing cu
 	* __STEP 2 :__ Make a _CustomerService.java_ interface and add the method public List<Customer> getCustomers();
 		
 	##### CustomerService.java
-			package com.rohitThebest.springdemo.service;
-			
-			import java.util.List;
-			
-			import com.rohitThebest.springdemo.entity.Customer;
-			
-			public interface CustomerService {
-			
-				public List<Customer> getCustomers();
-			
-			}
+	
+		package com.rohitThebest.springdemo.service;
+		
+		import java.util.List;
+		
+		import com.rohitThebest.springdemo.entity.Customer;
+		
+		public interface CustomerService {
+		
+			public List<Customer> getCustomers();
+		
+		}
+	
 	* __STEP 3 : Make a service implmentation class called _CustomerServiceImpl.java_
 	
 	##### CustomerServiceImpl.java
 	
-			package com.rohitThebest.springdemo.service;
-			
-			import java.util.List;
-			
-			import javax.transaction.Transactional;
-			
-			import org.springframework.beans.factory.annotation.Autowired;
-			import org.springframework.stereotype.Service;
-			
-			import com.rohitThebest.springdemo.dao.CustomerDAO;
-			import com.rohitThebest.springdemo.entity.Customer;
+		package com.rohitThebest.springdemo.service;
+		
+		import java.util.List;
+		
+		import javax.transaction.Transactional;
+		
+		import org.springframework.beans.factory.annotation.Autowired;
+		import org.springframework.stereotype.Service;
+		
+		import com.rohitThebest.springdemo.dao.CustomerDAO;
+		import com.rohitThebest.springdemo.entity.Customer;
+		
+		/**
+		 * @Service : This is added to the service implementation class and 
+		 * is scanned by Spring for declaring it as the service class
+		 */
+		@Service
+		public class CustomerServiceImpl implements CustomerService {
+		
+			// need to inject CustomerDAO
+			@Autowired
+			private CustomerDAO customerDAO;
 			
 			/**
-			 * @Service : This is added to the service implementation class and 
-			 * is scanned by Spring for declaring it as the service class
+			 * @Transactional : Our service layer will handle the opening and closing
+			 * of the transaction
 			 */
-			@Service
-			public class CustomerServiceImpl implements CustomerService {
-			
-				// need to inject CustomerDAO
-				@Autowired
-				private CustomerDAO customerDAO;
+			@Override
+			@Transactional
+			public List<Customer> getCustomers() {
 				
-				/**
-				 * @Transactional : Our service layer will handle the opening and closing
-				 * of the transaction
-				 */
-				@Override
-				@Transactional
-				public List<Customer> getCustomers() {
-					
-					return customerDAO.getCustomers();
-				}
-			
+				return customerDAO.getCustomers();
 			}
+		
+		}
 	
 	* __STEP 4 :__ Remove the _@Transactional_ annotation from the __CustomerDaoImpl.java__
 	
 	##### CustomerDAOImpl.java
 	
-			package com.rohitThebest.springdemo.dao;
+		package com.rohitThebest.springdemo.dao;
+		
+		import java.util.List;
+		
+		import org.hibernate.Session;
+		import org.hibernate.SessionFactory;
+		import org.hibernate.query.Query;
+		import org.springframework.beans.factory.annotation.Autowired;
+		import org.springframework.stereotype.Repository;
+		import org.springframework.transaction.annotation.Transactional;
+		
+		import com.rohitThebest.springdemo.entity.Customer;
+		
+		/**
+		 * @Repository :  this will help spring to scan for the implementation of the DAO.
+		 * This annotation is only used on the DAO implementation classes
+		 */
+		@Repository
+		public class CustomerDAOImpl implements CustomerDAO {
+		
+			// need to inject the session factory
+			@Autowired
+			private SessionFactory sessionFactory;
 			
-			import java.util.List;
 			
-			import org.hibernate.Session;
-			import org.hibernate.SessionFactory;
-			import org.hibernate.query.Query;
-			import org.springframework.beans.factory.annotation.Autowired;
-			import org.springframework.stereotype.Repository;
-			import org.springframework.transaction.annotation.Transactional;
-			
-			import com.rohitThebest.springdemo.entity.Customer;
-			
-			/**
-			 * @Repository :  this will help spring to scan for the implementation of the DAO.
-			 * This annotation is only used on the DAO implementation classes
-			 */
-			@Repository
-			public class CustomerDAOImpl implements CustomerDAO {
-			
-				// need to inject the session factory
-				@Autowired
-				private SessionFactory sessionFactory;
+			@Override 
+			public List<Customer> getCustomers() {
 				
+				// get the current hibernate session
+				Session currentSession = sessionFactory.getCurrentSession();
 				
-				@Override 
-				public List<Customer> getCustomers() {
-					
-					// get the current hibernate session
-					Session currentSession = sessionFactory.getCurrentSession();
-					
-					// create a query
-					Query<Customer> query = 
-							currentSession.createQuery("from Customer", Customer.class);
-			
-					
-					// execute query and the result list
-					List<Customer> customers = query.getResultList();
-					
-					// return the results
-					return customers;
-				}
-			
+				// create a query
+				Query<Customer> query = 
+						currentSession.createQuery("from Customer", Customer.class);
+		
+				
+				// execute query and the result list
+				List<Customer> customers = query.getResultList();
+				
+				// return the results
+				return customers;
 			}
+		
+		}
 	
 	* __STEP 5 :__ Update the __CustomerController.java__ class by replacing the CustomerDAO object with CustomerService object
 	
 	##### CustomerController.java
 
-			package com.rohitThebest.springdemo.controller;
+		package com.rohitThebest.springdemo.controller;
+		
+		import java.util.List;
+		
+		import org.springframework.beans.factory.annotation.Autowired;
+		import org.springframework.stereotype.Controller;
+		import org.springframework.ui.Model;
+		import org.springframework.web.bind.annotation.GetMapping;
+		import org.springframework.web.bind.annotation.PostMapping;
+		import org.springframework.web.bind.annotation.RequestMapping;
+		
+		import com.rohitThebest.springdemo.dao.CustomerDAO;
+		import com.rohitThebest.springdemo.entity.Customer;
+		import com.rohitThebest.springdemo.service.CustomerService;
+		
+		@Controller
+		@RequestMapping("/customer")
+		public class CustomerController {
+		
+			// need to inject the customer service
+			@Autowired
+			private CustomerService customerService;
 			
-			import java.util.List;
-			
-			import org.springframework.beans.factory.annotation.Autowired;
-			import org.springframework.stereotype.Controller;
-			import org.springframework.ui.Model;
-			import org.springframework.web.bind.annotation.GetMapping;
-			import org.springframework.web.bind.annotation.PostMapping;
-			import org.springframework.web.bind.annotation.RequestMapping;
-			
-			import com.rohitThebest.springdemo.dao.CustomerDAO;
-			import com.rohitThebest.springdemo.entity.Customer;
-			import com.rohitThebest.springdemo.service.CustomerService;
-			
-			@Controller
-			@RequestMapping("/customer")
-			public class CustomerController {
-			
-				// need to inject the customer service
-				@Autowired
-				private CustomerService customerService;
+			/**
+			 * @GetMapping : It is just used for handling the GET methods, any 
+			 * other methods would be rejected by this method
+			 */
+			@GetMapping("/list")
+			//@RequestMapping("/list")
+			public String listCustomers(Model theModel) {
 				
-				/**
-				 * @GetMapping : It is just used for handling the GET methods, any 
-				 * other methods would be rejected by this method
-				 */
-				@GetMapping("/list")
-				//@RequestMapping("/list")
-				public String listCustomers(Model theModel) {
-					
-					// get customers from the service
-					List<Customer> customers = customerService.getCustomers();
-					
-					// add the customers to the model
-					theModel.addAttribute("customers", customers);
-					
-					return "list-customers";
-				}
+				// get customers from the service
+				List<Customer> customers = customerService.getCustomers();
+				
+				// add the customers to the model
+				theModel.addAttribute("customers", customers);
+				
+				return "list-customers";
 			}
+		}
+
+---
+
+### Adding Customer
+	
+* Now let's try to add a functionality for adding the customers to the database
+
+* First of all we need a form for adding the customer details.
+
+#### STEP 1 : Update the __list-customers.jsp__ 
+	
+* We need a button which will redirect the user to the page for customer-form.
+	
+##### Updated list-customers.jsp
+	
+	<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+	<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+	    pageEncoding="ISO-8859-1"%>
+	<!DOCTYPE html>
+	<html>
+	<head>
+		<meta charset="ISO-8859-1">
+		
+		<title>List Customers</title>
+		
+		<link 
+			type="text/css" 
+			rel="stylesheet" 
+			href="${pageContext.request.contextPath}/resources/css/style.css"/>
+		
+		
+	</head>
+			
+	<body>
+			
+		<div id="wrapper">
+			
+			<div id="header">
+				<h2>CRM - Customer Relationship Manager</h2>
+			</div>
+		</div>
+		
+		<div id="container">
+			
+			<div id="content">
+				
+				<!-- put new button: Add Customer -->
+				
+				<input type="button" value="Add Customer"
+						onClick="window.location.href='showFormForAdd'; return false;"
+						class="add-button"
+						/>
+				
+				<!-- add out html table here -->
+				
+				<table>
+					
+					<tr>
+						<th>First Name </th>
+						<th>Last Name </th>
+						<th>Email</th>
+					</tr>
+					
+					<!-- loop over and print our customers -->
+					
+					<c:forEach var="tempCustomer" items="${customers}">
+						
+						<tr>
+							
+							<td>${tempCustomer.firstName}</td>
+							<td>${tempCustomer.lastName}</td>
+							<td>${tempCustomer.email}</td>
+							
+						</tr>
+						
+					</c:forEach>
+					
+				</table>
+				
+			</div>
+			
+		</div>
+			
+	</body>
+	</html>
+
+			
+#### STEP 2 : Make customer-form.jsp file for showing the form for adding customer details
+
+##### customer-form.jsp
+			
+	<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+	<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+	    pageEncoding="ISO-8859-1"%>
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta charset="ISO-8859-1">
+	<title>Save Customer</title>
+	
+	<link type="text/css"
+		rel="stylesheet"
+		href="${pageContext.request.contextPath}/resources/css/style.css">
+	
+	<link type="text/css"
+		rel="stylesheet"
+		href="${pageContext.request.contextPath}/resources/css/add-customer-style.css">
+	
+	
+	</head>
+	<body>
+	
+		<div id="wrapper">
+			
+			<div id="header">
+			
+				<h2>CRM - Customer Relationship Manager</h2>
+			</div>
+		</div>
+	
+		<div id="container">
+			
+			<h3>Save Customer</h3>
+			
+			<form:form action="saveCustomer" modelAttribute="customer" method="POST">
+				
+				<table>
+				
+					<tbody>
+						
+						<tr>
+							
+							<td><label>First name:</label></td>
+							<td><form:input path="firstName" /></td>
+						</tr>
+						
+						<tr>
+							
+							<td><label>Last name:</label></td>
+							<td><form:input path="lastName" /></td>
+						</tr>
+						
+						<tr>
+							
+							<td><label>Email:</label></td>
+							<td><form:input path="email" /></td>
+						</tr>
+						
+						<tr>
+							
+							<td><label></label></td>
+							<td><input type="submit" value="Save" class="save" /></td>
+						</tr>
+						
+					</tbody>
+				</table>
+				
+			</form:form>
+			
+		<div style="clear; both;"></div>
+			
+			<p>
+				
+				<a href="${pageContext.request.contextPath}/customer/list">Back to List</a>
+			</p>
+			
+		</div>
+		
+	</body>
+	</html>
+
+#### STEP 3 : add method for saving customer in __CustomerService__ , __CustomerServiceImpl__, __CustomerDAO__, __CustomerDAOImpl__
+
+##### CustomerService.java
+
+	public void saveCustomer(Customer customer);
 
 
+##### CustomerServiceImpl.java
 
+	@Override
+	@Transactional
+	public void saveCustomer(Customer customer) {
+		
+		customerDAO.saveCustomer(customer);
+	}
+		
+##### CustomerDAO.java
+	
+	public void saveCustomer(Customer customer);
+		
+##### CustomerDAOImpl.java
 
+	@Override
+	public void saveCustomer(Customer customer) {
+		
+		// get current hibernate session
+		Session currentSession = sessionFactory.getCurrentSession();
 
+		// save the customer
+		currentSession.save(customer);
+	}
 
+#### STEP 4 : Update the CustomerController class
+	
+##### CustomerController.java
+	
+	@GetMapping("/showFormForAdd")
+	public String showFormForAdd(Model theModel) {
+		
+		// create model attribute to bind form data
+		
+		Customer customer = new Customer();
+		
+		theModel.addAttribute("customer", customer);
+		
+		return "customer-form";
+	}
+	
+	@PostMapping("/saveCustomer")
+	public String saveCustomer(@ModelAttribute("customer") Customer theCustomer) {
+		
+		customerService.saveCustomer(theCustomer);
+		
+		return "redirect:/customer/list";
+	}
+	
 
-
+	
