@@ -5,6 +5,8 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.rohitThebest.springdemo.dao.CustomerDAO;
@@ -18,7 +20,12 @@ public class CustomerController {
 	@Autowired
 	private CustomerDAO customerDAO;
 
-	@RequestMapping("/list")
+	/**
+	 * @GetMapping : It is just used for handling the GET methods, any 
+	 * other methods would be rejected by this method
+	 */
+	@GetMapping("/list")
+	//@RequestMapping("/list")
 	public String listCustomers(Model theModel) {
 		
 		// get customers from the dao
