@@ -720,7 +720,7 @@ A project using spring MVC and hibernate to make a simple web app for showing cu
 		
 		customerService.saveCustomer(theCustomer);
 		
-		return "redirect:/customer/list";
+		return "redirect:/customer/list"; // this will redirect the user to the customer/list page
 	}
 	
 
