@@ -24,12 +24,14 @@ public class CustomerDAOImpl implements CustomerDAO {
 	
 	
 	@Override
-	/**
-	 * @Transactional : Using this annotation we don't need to explicitly 
-	 * get the transaction object and also we don't need to call transaction.commit()
-	 * Spring framework will do this stuff for us.
-	 */
-	@Transactional  
+	// 
+	// Removing the @Transactional as our service layer will now handle the transaction
+//	/**
+//	 * @Transactional : Using this annotation we don't need to explicitly 
+//	 * get the transaction object and also we don't need to call transaction.commit()
+//	 * Spring framework will do this stuff for us.
+//	 */
+//	@Transactional  
 	public List<Customer> getCustomers() {
 		
 		// get the current hibernate session
