@@ -1,5 +1,6 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+<%@ page import="com.rohitThebest.springdemo.utility.SortUtils" %>
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
     pageEncoding="ISO-8859-1"%>
 <!DOCTYPE html>
@@ -48,10 +49,29 @@
 			<!-- add out html table here -->
 			<table>
 				
+				<!-- construct a sort link for firstName -->
+				<c:url var="sortLinkFirstName" value="/customer/list">
+					
+					<c:param name="sort" value="<%= Integer.toString(SortUtils.FIRST_NAME) %>"/>
+				</c:url>
+				
+				<!-- construct a sort link for lastName -->
+				<c:url var="sortLinklastName" value="/customer/list">
+					
+					<c:param name="sort" value="<%= Integer.toString(SortUtils.LAST_NAME) %>"/>
+				</c:url>
+				
+				<!-- construct a sort link for email -->
+				<c:url var="sortLinkEmail" value="/customer/list">
+					
+					<c:param name="sort" value="<%= Integer.toString(SortUtils.EMAIL) %>"/>
+				</c:url>
+				
+				
 				<tr>
-					<th>First Name </th>
-					<th>Last Name </th>
-					<th>Email</th>
+					<th><a href="${sortLinkFirstName}">First Name</a></th>
+					<th><a href="${sortLinklastName}">Last Name</a></th>
+					<th><a href="${sortLinkEmail}">Email</a></th>
 					<th>Action</th>
 				</tr>
 				

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.rohitThebest.springdemo.entity.Customer;
+import com.rohitThebest.springdemo.utility.SortUtils;
 
 /**
  * @Repository : this will help spring to scan for the implementation of the
@@ -33,13 +34,31 @@ public class CustomerDAOImpl implements CustomerDAO {
 //	 * Spring framework will do this stuff for us.
 //	 */
 //	@Transactional  
-	public List<Customer> getCustomers() {
+	public List<Customer> getCustomers(int sortField) {
 
 		// get the current hibernate session
 		Session currentSession = sessionFactory.getCurrentSession();
 
+		String fieldName = null;
+
+		switch (sortField) {
+
+		case SortUtils.FIRST_NAME:
+
+			fieldName = "firstName";
+			break;
+
+		case SortUtils.EMAIL:
+
+			fieldName = "email";
+			break;
+		default:
+			fieldName = "lastName";
+			break;
+		}
+		
 		// create a query ... sort by lastName
-		Query<Customer> query = currentSession.createQuery("from Customer order by lastName", Customer.class);
+		Query<Customer> query = currentSession.createQuery("from Customer order by " + fieldName, Customer.class);
 
 		// execute query and the result list
 		List<Customer> customers = query.getResultList();
@@ -76,8 +95,7 @@ public class CustomerDAOImpl implements CustomerDAO {
 		Session currentSession = sessionFactory.getCurrentSession();
 
 		// delete object with primary key
-		Query query = 
-				currentSession.createQuery("delete from Customer where id=:theCustomerId");
+		Query query = currentSession.createQuery("delete from Customer where id=:theCustomerId");
 
 		query.setParameter("theCustomerId", id);
 
@@ -88,18 +106,19 @@ public class CustomerDAOImpl implements CustomerDAO {
 	public List<Customer> searchCustomers(String name) {
 
 		Session currentSession = sessionFactory.getCurrentSession();
-		
+
 		Query<Customer> query = null;
-		
+
 		if (name != null && !name.trim().isEmpty()) {
-			
-			query = currentSession
-					.createQuery("from Customer where lower(firstName) like :theName or lower(lastName) like :theName", Customer.class);
-			
+
+			query = currentSession.createQuery(
+					"from Customer where lower(firstName) like :theName or lower(lastName) like :theName",
+					Customer.class);
+
 			query.setParameter("theName", name);
-			
-		}else {
-			
+
+		} else {
+
 			query = currentSession.createQuery("from Customer", Customer.class);
 		}
 
