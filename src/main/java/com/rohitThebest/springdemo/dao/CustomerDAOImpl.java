@@ -37,9 +37,9 @@ public class CustomerDAOImpl implements CustomerDAO {
 		// get the current hibernate session
 		Session currentSession = sessionFactory.getCurrentSession();
 		
-		// create a query
+		// create a query ... sort by lastName
 		Query<Customer> query = 
-				currentSession.createQuery("from Customer", Customer.class);
+				currentSession.createQuery("from Customer order by lastName", Customer.class);
 
 		
 		// execute query and the result list
@@ -56,8 +56,22 @@ public class CustomerDAOImpl implements CustomerDAO {
 		// get current hibernate session
 		Session currentSession = sessionFactory.getCurrentSession();
 
-		// save the customer
-		currentSession.save(customer);
+		
+		/**
+		 * saveOrUpdate : this method checks if the primaryKey/id is empty
+		 * then do an insert or else do the update to an existing data
+		 */
+		// save/update the customer
+		currentSession.saveOrUpdate(customer);
+	}
+
+
+	@Override
+	public Customer getCustomer(int id) {
+
+		Session currentSession = sessionFactory.getCurrentSession();
+		
+		return currentSession.get(Customer.class, id);
 	}
 
 }
