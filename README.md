@@ -723,5 +723,146 @@ A project using spring MVC and hibernate to make a simple web app for showing cu
 		return "redirect:/customer/list"; // this will redirect the user to the customer/list page
 	}
 	
+---
+		
+### Updating the Customer details
 
+#### __STEP 1 :__ Update the __list-customer.jsp__ for adding a new column _Action_ 
+
+##### list-customer.jsp
+		
+	<!-- add out html table here -->
+	<table>
+		
+		<tr>
+			<th>First Name </th>
+			<th>Last Name </th>
+			<th>Email</th>
+			<th>Action</th>
+		</tr>
+		
+		<!-- loop over and print our customers -->
+		
+		<c:forEach var="tempCustomer" items="${customers}">
+			
+			<!-- construct an "update" link with customer id -->
+			
+			<c:url var="updateLink" value="/customer/showFormForUpdate">
+			
+				<c:param name="customerId" value="${tempCustomer.id}" />
+			</c:url>
+			
+			<tr>
+				
+				<td>${tempCustomer.firstName}</td>
+				<td>${tempCustomer.lastName}</td>
+				<td>${tempCustomer.email}</td>
+				<td>
+					<!-- display the update link -->
+					<a href="${updateLink}">Update</a>
+				</td>
+			</tr>
+			
+		</c:forEach>
+		
+	</table>
+
+* here we are making a link _updateLink_ withh parameter of __customer id__, which will navigate the user to the showFormForUpdate
+
+#### __STEP 2 :__ Updating our __CustomerController.java__ class
+
+##### CustomerController.java	
+		
+	@GetMapping("/showFormForUpdate")
+	public String showFormForUpdate(@RequestParam("customerId") int id, Model model) {
+		
+		// get the customer from the database
+		
+		Customer customer = customerService.getCustomer(id);
+		
+		// set customer as a model attribute to pre-populate the form
+		model.addAttribute("customer", customer);
+		
+		// send over to our form
+		return "customer-form";
+	}
+
+* In this method we get the _customer_ using the _id_ and will send the data to the _customer-form.jsp_ so that the data can be pre populated.
+
+#### __STEP 3 :__ Updating __customer-form.jsp__ for pre-populating the data
+
+##### customer-form.jsp		
+		
+	<form:form action="saveCustomer" modelAttribute="customer" method="POST">
+		
+		<!-- need to associate this data with customer id -->
+		<form:hidden path="id" />
+		
+		<table>
+			<tbody>
+				<tr>
+					<td><label>First name:</label></td>
+					<td><form:input path="firstName" /></td>
+				</tr>
+				<tr>
+					
+					<td><label>Last name:</label></td>
+					<td><form:input path="lastName" /></td>
+				</tr>
+				<tr>
+					
+					<td><label>Email:</label></td>
+					<td><form:input path="email" /></td>
+				</tr>
+				<tr>
+					
+					<td><label></label></td>
+					<td><input type="submit" value="Save" class="save" /></td>
+				</tr>	
+			</tbody>
+		</table>
+		
+	</form:form>
+		
+* __<form:hidden path="id" />__ : This will be the hidden form and will call the setId() method for setting the id so as we can update the data.
+		
+#### __STEP 4 :__ Adding method for getting the customer by id in _CustomerService_, _CustomerServiceImpl_, _CustomerDAO_, CustomerDAOImpl
 	
+##### CustomerService.java  & CustomerDAO.java
+		
+	public Customer getCustomer(int id);
+
+##### CustomerServiceImpl.java
+
+	@Override
+	@Transactional
+	public Customer getCustomer(int id) {
+		
+		return customerDAO.getCustomer(id);
+	}
+
+##### CustomerDAOImpl.java
+		
+	@Override
+	public void saveCustomer(Customer customer) {
+		
+		// get current hibernate session
+		Session currentSession = sessionFactory.getCurrentSession();
+		
+		/**
+		 * saveOrUpdate : this method checks if the primaryKey/id is empty
+		 * then do an insert or else do the update to an existing data
+		 */
+		// save/update the customer
+		currentSession.saveOrUpdate(customer);
+	}
+
+
+	@Override
+	public Customer getCustomer(int id) {
+
+		Session currentSession = sessionFactory.getCurrentSession();
+		
+		return currentSession.get(Customer.class, id);
+	}
+
