@@ -940,10 +940,117 @@ A project using spring MVC and hibernate to make a simple web app for showing cu
 		query.executeUpdate();
 	}
 
+				
+### Adding Search Functionality
 		
+#### STEP 1 : Update list-customers.jsp
 		
+* Add taglib for forms
+* Make a form for searching the Customers by name
 		
+		<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+		<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+		<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+		    pageEncoding="ISO-8859-1"%>
+		<!DOCTYPE html>
+		<html>
+		<head>
+			<meta charset="ISO-8859-1">
+			
+			<title>List Customers</title>
+			
+			<link 
+				type="text/css" 
+				rel="stylesheet" 
+				href="${pageContext.request.contextPath}/resources/css/style.css"/>
 		
+		</head>
+		<body>
 		
+			<div id="wrapper">
+				
+				<div id="header">
+					<h2>CRM - Customer Relationship Manager</h2>
+				</div>
+			</div>
+			
+			<div id="container">
+				
+				<div id="content">
+					
+					<!-- put new button: Add Customer -->
+					
+					<input type="button" value="Add Customer"
+							onClick="window.location.href='showFormForAdd'; return false;"
+							class="add-button"
+							/>
+					
+					<!-- add a search box here -->
+					<form:form action="search" method="GET">
+						
+						Search Customer: <input type="text" name="theSearchName"/>
+						
+						<input type="submit" value="Search" class="add-button" />
+					</form:form>
+					
+					...
+					...
+
+		
+#### STEP 2 : Add mapping for search in _CustomerController_
+
+##### CustomerController.java
+					
+	@GetMapping("/search")
+	public String searchCustomers(@RequestParam("theSearchName") String name, 
+			Model model
+			) {
+		
+		List<Customer> customers = customerService.searchCustomers(name);
+		
+		model.addAttribute("customers", customers);
+
+		return "list-customers";
+	}
+
+#### STEP 3 : Add method _seacrhCustomers() in _CustomerService_, _CustomerDAO_, _CustomerServiceImpl_, _CustomerDAOImpl_
+					
+##### CustomerService AND CustomerDAO
+	
+	public List<Customer> searchCustomers(String name);
+
+##### CustomerServiceImpl.java
+					
+	@Override
+	@Transactional
+	public List<Customer> searchCustomers(String name) {
+
+		return customerDAO.searchCustomers(name);
+	}
+
+##### CustomerDAOImpl.java
+					
+	@Override
+	public List<Customer> searchCustomers(String name) {
+
+		Session currentSession = sessionFactory.getCurrentSession();
+		
+		Query<Customer> query = null;
+		
+		if (name != null && !name.trim().isEmpty()) {
+			
+			query = currentSession
+					.createQuery("from Customer where lower(firstName) like :theName or lower(lastName) like :theName", Customer.class);
+			
+			query.setParameter("theName", name);
+			
+		}else {
+			
+			query = currentSession.createQuery("from Customer", Customer.class);
+		}
+
+		return query.getResultList();
+	}
+
 		
 		
