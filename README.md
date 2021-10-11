@@ -727,7 +727,7 @@ A project using spring MVC and hibernate to make a simple web app for showing cu
 		
 ### Updating the Customer details
 
-#### __STEP 1 :__ Update the __list-customer.jsp__ for adding a new column _Action_ 
+#### STEP 1 : Update the __list-customer.jsp__ for adding a new column _Action_ 
 
 ##### list-customer.jsp
 		
@@ -769,7 +769,7 @@ A project using spring MVC and hibernate to make a simple web app for showing cu
 
 * here we are making a link _updateLink_ withh parameter of __customer id__, which will navigate the user to the showFormForUpdate
 
-#### __STEP 2 :__ Updating our __CustomerController.java__ class
+#### STEP 2 : Updating our __CustomerController.java__ class
 
 ##### CustomerController.java	
 		
@@ -789,7 +789,7 @@ A project using spring MVC and hibernate to make a simple web app for showing cu
 
 * In this method we get the _customer_ using the _id_ and will send the data to the _customer-form.jsp_ so that the data can be pre populated.
 
-#### __STEP 3 :__ Updating __customer-form.jsp__ for pre-populating the data
+#### STEP 3 : Updating __customer-form.jsp__ for pre-populating the data
 
 ##### customer-form.jsp		
 		
@@ -826,7 +826,7 @@ A project using spring MVC and hibernate to make a simple web app for showing cu
 		
 * __<form:hidden path="id" />__ : This will be the hidden form and will call the setId() method for setting the id so as we can update the data.
 		
-#### __STEP 4 :__ Adding method for getting the customer by id in _CustomerService_, _CustomerServiceImpl_, _CustomerDAO_, CustomerDAOImpl
+#### STEP 4 : Adding method for getting the customer by id in _CustomerService_, _CustomerServiceImpl_, _CustomerDAO_, CustomerDAOImpl
 	
 ##### CustomerService.java  & CustomerDAO.java
 		
@@ -866,3 +866,84 @@ A project using spring MVC and hibernate to make a simple web app for showing cu
 		return currentSession.get(Customer.class, id);
 	}
 
+---
+		
+### Deleting Customer from database
+		
+#### STEP 1 : Update the list-customers.jsp file
+
+* Create a link for deleting the customer
+* Add delete link in the table row
+* Add javascript code for prompting the warning or confirmation dialog.
+		
+##### list-customers.jsp
+	<c:url var="deleteLink" value="/customer/delete">
+	
+		<c:param name="customerId" value="${tempCustomer.id}" />
+	</c:url>
+	
+	<tr>
+		
+		<td>${tempCustomer.firstName}</td>
+		<td>${tempCustomer.lastName}</td>
+		<td>${tempCustomer.email}</td>
+		<td>
+			<!-- display the update and delete link -->
+			<a href="${updateLink}">Update</a>
+			|
+			<a href="${deleteLink}"
+				onClick= "if (!(confirm('Are you sure you want to delete this customer?'))) return false">Delete</a>
+		</td>
+	</tr>
+
+#### STEP 2 : Update CustomerController.java
+
+* add mapping for deleteLink
+
+	@GetMapping("/delete")
+	public String deleteCustomer(@RequestParam("customerId") int id) {
+		
+		// delete the customer
+		customerService.deleteCustomer(id);
+		
+		return "redirect:/customer/list";
+	}
+
+#### STEP 3 : add deleteCustomer() method in _CustomerService_ , _CustomerServiceImpl_, _CustomerDAO_, _CustomerDAOImpl_
+
+##### CustomerService.java AND CustomerDAO.java
+	
+	public void deleteCustomer(int id);
+
+##### CustomerServiceImpl.java
+
+	@Override
+	@Transactional
+	public void deleteCustomer(int id) {
+		
+		customerDAO.deleteCustomer(id);
+	}
+
+##### CustomerDAOImpl.java
+
+	@Override
+	public void deleteCustomer(int id) {
+
+		Session currentSession = sessionFactory.getCurrentSession();
+
+		// delete object with primary key
+		Query query = 
+				currentSession.createQuery("delete from Customer where id=:theCustomerId");
+
+		query.setParameter("theCustomerId", id);
+
+		query.executeUpdate();
+	}
+
+		
+		
+		
+		
+		
+		
+		
