@@ -940,6 +940,7 @@ A project using spring MVC and hibernate to make a simple web app for showing cu
 		query.executeUpdate();
 	}
 
+---
 				
 ### Adding Search Functionality
 		
