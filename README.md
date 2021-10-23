@@ -1053,5 +1053,6 @@ A project using spring MVC and hibernate to make a simple web app for showing cu
 		return query.getResultList();
 	}
 
-		
+
+#### Added AOP support - switch to - https://github.com/rkumar0206/Customer_Relationship_Manager-Using-Spring-MVC_Hibernate/tree/web_customer_tracker_aop branch.
 		
