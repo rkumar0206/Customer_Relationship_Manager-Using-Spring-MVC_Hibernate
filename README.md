@@ -4,7 +4,7 @@
 #### Used maven for creating the project
 
 ### Adding AOP
-- add depedency for aspectj
+- add dependency for aspectj
 - update the *spring-mvc-crud-demo-servlet.xml* file
   - add aop namespace
   - add aop schema
